@@ -6,7 +6,7 @@ Source (only source used): Treasury Fiscal Data, host `api.fiscaldata.treasury.g
 
 PULL 1: 2026-11-14 18:29:37-44 UTC (HTTP Date headers), note filed 2026-11-14 18:34:09 UTC, 11 rows, SHA-256 `a2a6a9052039bb5745498251600cdf195163ce94fc566c7dda8048ffa22f62b5`.
 
-PULL 2: 2026-11-15 18:35-18:42 UTC, note filed 2026-11-15 18:45:48 UTC, 11 rows, SHA-256 `713545815916db2518ae8f34038bf02c0509f152dd23c513fbf8fa8938e02de3`. PULL 2 is PARTIAL: `debt_to_penny` re-pulled complete (2761/2761); `avg_interest_rates` and `interest_expense` failed on pull 2 after one retry each (HTTP 503), and a further main-agent retry at 2026-11-15 18:49-18:52 UTC found all three endpoints HTTP 503. Per the TASK, for the two failed sources: pull 2 failed (counts as done). The pull 2 CSV keeps its 11 rows with `average_debt` populated from the successful re-pull and the other columns empty (a value the source leaves empty stays an empty cell), including the `flag` column: the flag is empty in all 11 rows because it cannot be computed from pull-2 data; no data was invented. See the Changes section and PROOF Requests 4-6.
+PULL 2: 2026-11-16 19:13:08-32 UTC, corrected note filed 2026-11-16 19:15:03 UTC, 11 rows, SHA-256 `a2a6a9052039bb5745498251600cdf195163ce94fc566c7dda8048ffa22f62b5`. PULL 2 is COMPLETE: all three datasets re-pulled in full during revision 2 (avg_interest_rates 2207/2207, debt_to_penny 2761/2761, interest_expense 5016/5016), each matching its meta total-count. The re-pull returned exactly the same data as pull 1, so the pull-2 CSV is byte-identical to the pull-1 CSV (same SHA-256). The original pull-2 attempt on 2026-11-15 failed for `avg_interest_rates` and `interest_expense` (HTTP 503 outage, 18:35-18:52 UTC; see PROOF Request 7), which is why the first D3 was partial; this complete re-pull replaces it, and the failure path no longer applies. See the Changes section and PROOF Requests 4-6.
 
 CSV headers are snake_case (`record_fiscal_year, average_debt, interest_expense, implied_rate, interest_bearing_rate, marketable_rate, nonmarketable_rate, flag`), a 1:1 mapping of the fields the job lists in order: record_fiscal_year, average debt, interest expense, implied rate, interest-bearing rate, marketable rate, non-marketable rate, flag.
 
@@ -21,18 +21,18 @@ One numbered answer per ACCEPTANCE line of the job, in the same order. Each answ
    Answer: Yes. The Command and console output section shows `python -m treasury_recon --responses-dir pull1/ --out treasury-cost-pull1.csv` and its real console output: avg_interest_rates 2207 records, meta total-count=2207; debt_to_penny 2761 records, meta total-count=2761; interest_expense 5016 records, meta total-count=5016 (all COMPLETE). The same total-counts appear in the raw excerpts in PROOF Requests 1-3 (`"total-count":2207`, `"total-count":2761`, `"total-count":5016`).
 
 3. ACCEPTANCE line 3: 3. Both CSV files are attached with exactly the listed columns, one row per fiscal year 2015 to 2025. [check: count, target 11, in D2]
-   Answer: Yes. D2 `treasury-cost-pull1.csv` (SHA-256 a2a6a9052039bb5745498251600cdf195163ce94fc566c7dda8048ffa22f62b5) and D3 `treasury-cost-pull2.csv` (SHA-256 `713545815916db2518ae8f34038bf02c0509f152dd23c513fbf8fa8938e02de3`) are attached as data files (see the Data files section) with exactly the 8 listed columns and 11 rows each, FY 2015-2025. D3 is partial as disclosed above: only `average_debt` is pull-2 data; the other columns are empty because their pull-2 sources failed after retry, and the `flag` column is empty in all 11 rows because the flag cannot be computed from pull-2 data.
+   Answer: Yes. D2 `treasury-cost-pull1.csv` (SHA-256 a2a6a9052039bb5745498251600cdf195163ce94fc566c7dda8048ffa22f62b5) and D3 `treasury-cost-pull2.csv` (SHA-256 `a2a6a9052039bb5745498251600cdf195163ce94fc566c7dda8048ffa22f62b5`) are attached as data files (see the Data files section) with exactly the 8 listed columns and 11 rows each, FY 2015-2025. D3 is complete: all three datasets were re-pulled in full for pull 2 (see the PULL 2 line above), so every column is populated and the CSV is byte-identical to D2.
 
 4. ACCEPTANCE line 4: 4. Every flagged year is explained from the data, with raw excerpts of the records behind it. [check: needs judgment]
    Answer: Yes. Only FY2022 is flagged. The Flagged year: FY2022 section explains it from the data with the raw records behind the numbers: all 12 monthly `avg_interest_rate_amt` values for `Total Interest-bearing Debt` (mean 1.7153), FY2022 interest-expense records, and the first/last FY2022 daily debt records.
 
 5. ACCEPTANCE line 5: 5. The PLATFORM RECORD shows a PULL 1: note and a PULL 2: note at least 24 hours later, each with its CSV's row count and SHA-256 as under DATA FILES; pull 2's source time is later than pull 1's; the change counts agree with both CSV files (or pull 2 failed as the TASK allows). [check: timing, target 24 hours between the notes]
-   Answer: Yes. Platform progress notes on this escrow: PULL 1 note recorded 2026-11-14 18:34:09 UTC (11 rows, SHA-256 a2a6a905...); PULL 2 note recorded 2026-11-15 18:45:48 UTC (11 rows, SHA-256 41b8bd8f...), 24 hours 11 minutes later. Pull 2 source time (debt_to_penny HTTP Date Sun, 15 Nov 2026 18:36:38 GMT) is later than pull 1 source time (Sat, 14 Nov 2026 18:29:37-44 GMT). D3 was revised in this revision: revision note recorded 2026-11-16 18:09:43 UTC (11 rows, SHA-256 71354581...), replacing the first D3; the Data files section lists the revised file. Change counts (Changes section, computed cell by cell from the two CSV files): new 0, gone 0, changed 11 keys (66 cells: interest_expense 11, implied_rate 11, interest_bearing_rate 11, marketable_rate 11, nonmarketable_rate 11, flag 11); 11 rows = 11 + 0 - 0. The two pull-2 sources that failed are disclosed as failed; the header-only pull-2 alternative does not apply because D3 keeps its 11 rows, so the counts above are the counts of the files as delivered.
+   Answer: Yes. Platform progress notes on this escrow: PULL 1 note recorded 2026-11-14 18:34:09 UTC (11 rows, SHA-256 a2a6a905...); corrected PULL 2 note recorded 2026-11-16 19:15:03 UTC (11 rows, SHA-256 a2a6a9052039bb5745498251600cdf195163ce94fc566c7dda8048ffa22f62b5), over 48 hours later. Pull 2 source time (HTTP Dates Mon, 16 Nov 2026 19:13:14-32 GMT) is later than pull 1 source time (Sat, 14 Nov 2026 18:29:37-44 GMT). The original PULL 2 note of 2026-11-15 18:45:48 UTC carried SHA-256 41b8bd8f..., the SHA of the superseded partial D3; it is superseded by the corrected PULL 2 note above, which carries the delivered D3's SHA-256. Change counts (Changes section, computed cell by cell from the two CSV files): new 0, gone 0, changed 0 keys (0 cells); 11 rows = 11 + 0 - 0. Pull 2 is complete, so the TASK's failure path does not apply; the counts above are the counts of the files as delivered.
 
 
 ## Package files
 
-Every file of the package, in full. The package is Python 3, stdlib only (`treasury_recon/`), plus unit tests (`tests/`), the pull script (`pull1.py`, also used for the pull-2 retry), the README, and the fixed sample data the tests use (`fixtures/`, hand-made, clearly labelled as fixtures; never mixed with the live pulls).
+Every file of the package, in full. The package is Python 3, stdlib only (`treasury_recon/`), plus unit tests (`tests/`), the pull scripts (`pull1.py`, also used for the pull-2 retry, and `pull2.py`, the full pull-2 re-pull in revision 2), the README, and the fixed sample data the tests use (`fixtures/`, hand-made, clearly labelled as fixtures; never mixed with the live pulls).
 
 ### `treasury_recon/__init__.py`
 
@@ -892,6 +892,129 @@ if __name__ == "__main__":
     raise SystemExit(main())
 ```
 
+### `pull2.py`
+
+```
+#!/usr/bin/env python3
+"""PULL 2 (full re-pull, revision 2) for escrow esc_a2981488c3744486bbcb4836.
+
+Re-fetches the three Fiscal Data datasets (FY 2015-2025) in full from the
+now-live sources, after the original 2026-11-15 pull-2 attempt failed for
+avg_interest_rates and interest_expense on HTTP 503. Saves raw responses
+into pull2-full/ plus a manifest with the exact UTC time each request was
+issued (to the second), the HTTP Date header of each page, SHA-256, page
+and record counts. One retry per failed dataset (per the TASK); on a
+failure after retry the error is recorded and the script exits non-zero
+-- it never invents data.
+
+Usage: python3 pull2.py [--out-dir pull2-full] [--page-size 10000]
+"""
+import argparse
+import hashlib
+import json
+import os
+import sys
+from datetime import datetime, timezone
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+from treasury_recon import client  # noqa: E402
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+
+
+def utc_now():
+    return datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+
+
+def pull_dataset(name, endpoint, out_dir, page_size):
+    """Fetch one dataset (one retry on failure). Returns manifest entry."""
+    pages = []
+    total_records = 0
+    total_count = None
+    counter = {"n": 0}
+    attempts = []
+
+    def saving_fetch(url):
+        http_date, body = client.default_fetch(url)
+        counter["n"] += 1
+        fname = f"{name}_page{counter['n']}.json"
+        with open(os.path.join(out_dir, fname), "wb") as handle:
+            handle.write(body)
+        return http_date, body
+
+    for attempt in (1, 2):
+        counter["n"] = 0
+        started = utc_now()
+        try:
+            result = client.fetch_all(endpoint, page_size=page_size,
+                                      fetch=saving_fetch)
+        except Exception as exc:
+            attempts.append({"attempt": attempt, "utc_requested": started,
+                             "error": str(exc)})
+            print(f"{name} attempt {attempt} ({started}): ERROR {exc}",
+                  file=sys.stderr)
+            if attempt == 1:
+                continue
+            return {"pages": [], "total_records": 0,
+                    "meta_total_count": None, "error": str(exc),
+                    "attempts": attempts}
+        attempts.append({"attempt": attempt, "utc_requested": started,
+                         "ok": True})
+        for page in result["pages"]:
+            fname = f"{name}_page{page['page']}.json"
+            with open(os.path.join(out_dir, fname), "rb") as handle:
+                body = handle.read()
+            pages.append({
+                "file": fname,
+                "page": page["page"],
+                "records": page["records"],
+                "http_date": page["http_date"],
+                "sha256": hashlib.sha256(body).hexdigest(),
+                "url": page["url"],
+            })
+            print(f"{name} page {page['page']}: {page['records']} records, "
+                  f"meta total-count={page['total_count']}, "
+                  f"date={page['http_date']}")
+        return {"pages": pages,
+                "total_records": len(result["records"]),
+                "meta_total_count": result["total_count"],
+                "attempts": attempts}
+    raise AssertionError("unreachable")
+
+
+def main():
+    parser = argparse.ArgumentParser(description="PULL 2 (full re-pull): "
+                                                "fetch the three Fiscal "
+                                                "Data datasets.")
+    parser.add_argument("--out-dir", default=os.path.join(HERE, "pull2-full"))
+    parser.add_argument("--page-size", type=int, default=client.DEFAULT_PAGE_SIZE)
+    args = parser.parse_args()
+
+    os.makedirs(args.out_dir, exist_ok=True)
+    manifest = {"pull": 2, "run_started_utc": utc_now(), "datasets": {}}
+    failed = []
+    for name, endpoint in client.DATASETS.items():
+        entry = pull_dataset(name, endpoint, args.out_dir, args.page_size)
+        manifest["datasets"][name] = entry
+        if "error" in entry:
+            failed.append(name)
+    with open(os.path.join(args.out_dir, "manifest.json"), "w") as handle:
+        json.dump(manifest, handle, indent=2)
+    summary = {k: (v.get("total_records"), v.get("meta_total_count"))
+               for k, v in manifest["datasets"].items()}
+    print(json.dumps(summary))
+    if failed:
+        print(f"PULL 2 FAILED for: {', '.join(failed)} "
+              "(see manifest.json errors; no data fabricated)", file=sys.stderr)
+        return 1
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+```
+
 ### `README.md`
 
 ```
@@ -1069,7 +1192,7 @@ test_short_page_stops_when_no_total_count (test_paging.PagingTest.test_short_pag
 test_stops_at_total_count_not_at_count (test_paging.PagingTest.test_stops_at_total_count_not_at_count) ... ok
 
 ----------------------------------------------------------------------
-Ran 15 tests in 0.029s
+Ran 15 tests in 0.014s
 
 OK
 ```
@@ -1100,29 +1223,29 @@ record_fiscal_year | average_debt | interest_expense | implied_rate | interest_b
 
 Re-running the same command reproduces `treasury-cost-pull1.csv` byte-identically (SHA-256 a2a6a9052039bb5745498251600cdf195163ce94fc566c7dda8048ffa22f62b5).
 
-Command (pull 2 CSV): `python -m treasury_recon --responses-dir pull2/ --out treasury-cost-pull2.csv`
+Command (pull 2 CSV): `python -m treasury_recon --responses-dir pull2-full/ --out treasury-cost-pull2.csv`
 
 ```
-avg_interest_rates: 0 records in 0 page file(s), meta total-count=None
+avg_interest_rates: 2207 records in 1 page file(s), meta total-count=2207 (COMPLETE)
 debt_to_penny: 2761 records in 1 page file(s), meta total-count=2761 (COMPLETE)
-interest_expense: 0 records in 0 page file(s), meta total-count=None
+interest_expense: 5016 records in 1 page file(s), meta total-count=5016 (COMPLETE)
 
 wrote treasury-cost-pull2.csv: 11 row(s)
 record_fiscal_year | average_debt | interest_expense | implied_rate | interest_bearing_rate | marketable_rate | nonmarketable_rate | flag
-2015 | 18096062581363.58 |  |  |  |  |  | 
-2016 | 19066846932474.53 |  |  |  |  |  | 
-2017 | 19878442153668.92 |  |  |  |  |  | 
-2018 | 20916712552863.04 |  |  |  |  |  | 
-2019 | 22025152565489.68 |  |  |  |  |  | 
-2020 | 24583391553432.13 |  |  |  |  |  | 
-2021 | 27954753605841.65 |  |  |  |  |  | 
-2022 | 30032058686496.05 |  |  |  |  |  | 
-2023 | 31784930379662.38 |  |  |  |  |  | 
-2024 | 34450429247286.05 |  |  |  |  |  | 
-2025 | 36367908003144.63 |  |  |  |  |  | 
+2015 | 18096062581363.58 | 402435356075.49 | 2.2239 | 2.3602 | 2.0181 | 3.1653 | no
+2016 | 19066846932474.53 | 432649652901.12 | 2.2691 | 2.3005 | 2.0342 | 2.9186 | no
+2017 | 19878442153668.92 | 458542287311.80 | 2.3067 | 2.2562 | 2.0322 | 2.7894 | no
+2018 | 20916712552863.04 | 523017301446.12 | 2.5005 | 2.3788 | 2.2206 | 2.7826 | no
+2019 | 22025152565489.68 | 574587783463.63 | 2.6088 | 2.5578 | 2.4722 | 2.7812 | no
+2020 | 24583391553432.13 | 522767299265.34 | 2.1265 | 2.1495 | 2.0491 | 2.4502 | no
+2021 | 27954753605841.65 | 562388232682.17 | 2.0118 | 1.6590 | 1.5137 | 2.1508 | no
+2022 | 30032058686496.05 | 718745810096.93 | 2.3933 | 1.7153 | 1.5959 | 2.1390 | yes
+2023 | 31784930379662.38 | 882598268533.48 | 2.7768 | 2.5873 | 2.5937 | 2.5587 | no
+2024 | 34450429247286.05 | 1133036890149.16 | 3.2889 | 3.2180 | 3.2788 | 2.9735 | no
+2025 | 36367908003144.63 | 1220025282630.31 | 3.3547 | 3.3085 | 3.3662 | 3.0565 | no
 ```
 
-The pull-2 run writes the partial CSV (SHA-256 713545815916db2518ae8f34038bf02c0509f152dd23c513fbf8fa8938e02de3): 11 rows, only `average_debt` populated, because only `debt_to_penny` has pull-2 responses; the other two datasets have none, so their columns stay empty, and the `flag` column is empty in every row because the flag cannot be computed from pull-2 data. No data invented.
+The pull-2 run writes the complete CSV (SHA-256 a2a6a9052039bb5745498251600cdf195163ce94fc566c7dda8048ffa22f62b5): 11 rows, all columns populated, because all three datasets have pull-2 responses in pull2-full/. The CSV is byte-identical to the pull-1 CSV: the re-pull returned exactly the same data.
 
 ## Results by fiscal year (pull 1, complete)
 
@@ -1142,25 +1265,25 @@ The pull-2 run writes the partial CSV (SHA-256 713545815916db2518ae8f34038bf02c0
 
 Definitions: average debt = mean of daily `tot_pub_debt_out_amt`; interest expense = sum of `month_expense_amt`; implied rate = interest expense / average debt x 100; interest-bearing / marketable / non-marketable rate = fiscal-year mean of monthly `avg_interest_rate_amt` for `Total Interest-bearing Debt` / `Total Marketable` / `Total Non-marketable`; flag = "yes" when |implied rate - interest-bearing mean| > 0.5 percentage points, "no" when both are known and the gap is at most 0.5 points, and empty when the implied rate or the interest-bearing mean cannot be computed from the data held.
 
-Pull-2 comparison: `average_debt` in pull 2 is identical to pull 1 for all 11 fiscal years (see Changes). The other pull-2 columns are empty because their sources failed on pull 2 (see PROOF Requests 5-6).
+Pull-2 comparison: pull 2 is byte-identical to pull 1 for all 11 fiscal years (see Changes: 0 changed cells).
 
-## Results by fiscal year (pull 2, partial)
+## Results by fiscal year (pull 2, complete)
 
-The pull-2 CSV as delivered (11 rows). Only `average_debt` is pull-2 data (identical to pull 1 for all 11 fiscal years); the other columns are empty because their pull-2 sources failed after one retry each, and the `flag` column is empty in every row because the flag cannot be computed from pull-2 data.
+The pull-2 CSV as delivered (11 rows), byte-identical to the pull-1 table above: the full re-pull returned exactly the same data for all three datasets.
 
 | FY | average debt | interest expense | implied rate | interest-bearing rate | marketable rate | non-marketable rate | flag |
 |---:|---:|---:|---:|---:|---:|---:|---:|
-| 2015 | 18096062581363.58 |  |  |  |  |  |  |
-| 2016 | 19066846932474.53 |  |  |  |  |  |  |
-| 2017 | 19878442153668.92 |  |  |  |  |  |  |
-| 2018 | 20916712552863.04 |  |  |  |  |  |  |
-| 2019 | 22025152565489.68 |  |  |  |  |  |  |
-| 2020 | 24583391553432.13 |  |  |  |  |  |  |
-| 2021 | 27954753605841.65 |  |  |  |  |  |  |
-| 2022 | 30032058686496.05 |  |  |  |  |  |  |
-| 2023 | 31784930379662.38 |  |  |  |  |  |  |
-| 2024 | 34450429247286.05 |  |  |  |  |  |  |
-| 2025 | 36367908003144.63 |  |  |  |  |  |  |
+| 2015 | 18096062581363.58 | 402435356075.49 | 2.2239 | 2.3602 | 2.0181 | 3.1653 | no |
+| 2016 | 19066846932474.53 | 432649652901.12 | 2.2691 | 2.3005 | 2.0342 | 2.9186 | no |
+| 2017 | 19878442153668.92 | 458542287311.80 | 2.3067 | 2.2562 | 2.0322 | 2.7894 | no |
+| 2018 | 20916712552863.04 | 523017301446.12 | 2.5005 | 2.3788 | 2.2206 | 2.7826 | no |
+| 2019 | 22025152565489.68 | 574587783463.63 | 2.6088 | 2.5578 | 2.4722 | 2.7812 | no |
+| 2020 | 24583391553432.13 | 522767299265.34 | 2.1265 | 2.1495 | 2.0491 | 2.4502 | no |
+| 2021 | 27954753605841.65 | 562388232682.17 | 2.0118 | 1.6590 | 1.5137 | 2.1508 | no |
+| 2022 | 30032058686496.05 | 718745810096.93 | 2.3933 | 1.7153 | 1.5959 | 2.1390 | yes |
+| 2023 | 31784930379662.38 | 882598268533.48 | 2.7768 | 2.5873 | 2.5937 | 2.5587 | no |
+| 2024 | 34450429247286.05 | 1133036890149.16 | 3.2889 | 3.2180 | 3.2788 | 2.9735 | no |
+| 2025 | 36367908003144.63 | 1220025282630.31 | 3.3547 | 3.3085 | 3.3662 | 3.0565 | no |
 
 ## Flagged year: FY2022
 
@@ -1217,27 +1340,12 @@ Key column: `record_fiscal_year`. Both CSVs have the same 11 keys (FY 2015-2025)
 
 - new (keys only in pull 2): 0
 - gone (keys only in pull 1): 0
-- changed (same key, different value in a named column): 11 keys (66 cells)
+- changed (same key, different value in a named column): 0 keys (0 cells)
 - pull 1 rows: 11; pull 2 rows: 11; 11 = 11 + 0 - 0.
 
-Changed cells by column: `average_debt` 0, `interest_expense` 11, `implied_rate` 11, `interest_bearing_rate` 11, `marketable_rate` 11, `nonmarketable_rate` 11, `flag` 11.
+Changed cells by column: none -- no cell differs between the two CSV files.
 
-Changed cells by key (value in pull 1 -> empty in pull 2):
-- FY2015: `interest_expense` 402435356075.49 -> (empty); `implied_rate` 2.2239 -> (empty); `interest_bearing_rate` 2.3602 -> (empty); `marketable_rate` 2.0181 -> (empty); `nonmarketable_rate` 3.1653 -> (empty); `flag` no -> (empty)
-- FY2016: `interest_expense` 432649652901.12 -> (empty); `implied_rate` 2.2691 -> (empty); `interest_bearing_rate` 2.3005 -> (empty); `marketable_rate` 2.0342 -> (empty); `nonmarketable_rate` 2.9186 -> (empty); `flag` no -> (empty)
-- FY2017: `interest_expense` 458542287311.80 -> (empty); `implied_rate` 2.3067 -> (empty); `interest_bearing_rate` 2.2562 -> (empty); `marketable_rate` 2.0322 -> (empty); `nonmarketable_rate` 2.7894 -> (empty); `flag` no -> (empty)
-- FY2018: `interest_expense` 523017301446.12 -> (empty); `implied_rate` 2.5005 -> (empty); `interest_bearing_rate` 2.3788 -> (empty); `marketable_rate` 2.2206 -> (empty); `nonmarketable_rate` 2.7826 -> (empty); `flag` no -> (empty)
-- FY2019: `interest_expense` 574587783463.63 -> (empty); `implied_rate` 2.6088 -> (empty); `interest_bearing_rate` 2.5578 -> (empty); `marketable_rate` 2.4722 -> (empty); `nonmarketable_rate` 2.7812 -> (empty); `flag` no -> (empty)
-- FY2020: `interest_expense` 522767299265.34 -> (empty); `implied_rate` 2.1265 -> (empty); `interest_bearing_rate` 2.1495 -> (empty); `marketable_rate` 2.0491 -> (empty); `nonmarketable_rate` 2.4502 -> (empty); `flag` no -> (empty)
-- FY2021: `interest_expense` 562388232682.17 -> (empty); `implied_rate` 2.0118 -> (empty); `interest_bearing_rate` 1.6590 -> (empty); `marketable_rate` 1.5137 -> (empty); `nonmarketable_rate` 2.1508 -> (empty); `flag` no -> (empty)
-- FY2022: `interest_expense` 718745810096.93 -> (empty); `implied_rate` 2.3933 -> (empty); `interest_bearing_rate` 1.7153 -> (empty); `marketable_rate` 1.5959 -> (empty); `nonmarketable_rate` 2.1390 -> (empty); `flag` yes -> (empty)
-- FY2023: `interest_expense` 882598268533.48 -> (empty); `implied_rate` 2.7768 -> (empty); `interest_bearing_rate` 2.5873 -> (empty); `marketable_rate` 2.5937 -> (empty); `nonmarketable_rate` 2.5587 -> (empty); `flag` no -> (empty)
-- FY2024: `interest_expense` 1133036890149.16 -> (empty); `implied_rate` 3.2889 -> (empty); `interest_bearing_rate` 3.2180 -> (empty); `marketable_rate` 3.2788 -> (empty); `nonmarketable_rate` 2.9735 -> (empty); `flag` no -> (empty)
-- FY2025: `interest_expense` 1220025282630.31 -> (empty); `implied_rate` 3.3547 -> (empty); `interest_bearing_rate` 3.3085 -> (empty); `marketable_rate` 3.3662 -> (empty); `nonmarketable_rate` 3.0565 -> (empty); `flag` no -> (empty)
-
-`average_debt` is identical in pull 1 and pull 2 for all 11 fiscal years (the pull-2 `debt_to_penny` page is byte-identical to pull 1: SHA-256 e41afec56f5013a3d8ccee746c5ddd4180508cc0be83057c30b252822ca2494f in both manifests). The other six value columns differ because their pull-2 sources failed after retries, so pull 2 leaves them empty: `interest_expense`, `implied_rate`, `interest_bearing_rate`, `marketable_rate` and `nonmarketable_rate` are populated in pull 1 and empty in pull 2 for all 11 keys (55 cells), and `flag` is empty in pull 2 for all 11 keys (11 cells): `yes` -> (empty) for FY2022 and `no` -> (empty) for the other 10 years. Note on the count: the first review counted 56 cells against the first delivery, whose `flag` column read `no` in all 11 pull-2 rows (so only the FY2022 flag differed); with the flag corrected to empty in every pull-2 row (items 2 and 6 of the revision), the flag column differs in all 11 rows, giving 55 + 11 = 66 changed cells.
-
-pull 2 failed (counts as done) for `avg_interest_rates` and `interest_expense` (see PROOF Requests 5-6 and the post-note retry in Request 7).
+The two CSVs are byte-identical. Every pull-2 page is byte-identical to its pull-1 page (same SHA-256 in both manifests: avg_interest_rates 8e1424d90ab618c036114e23e90c0b680ddb5ff81361ab467d2bc35de1895dd8, debt_to_penny e41afec56f5013a3d8ccee746c5ddd4180508cc0be83057c30b252822ca2494f, interest_expense 2546b9d088d5f3f7443bedd8b56921e9a5e907604189d706690114cb64f80690). Note on the count: the first delivery's pull-2 CSV was partial (only `average_debt` populated, 66 changed cells against pull 1); the revision-2 full re-pull replaced it with a complete pull 2, so the change count is now 0. Pull 2 is complete, so the TASK's failure path does not apply (see PROOF Requests 4-6, and Request 7 for the history of the original failed attempt).
 
 ## PROOF
 
@@ -1288,51 +1396,55 @@ meta object, exactly as returned in the saved pull1/ file:
 ### Request 4: PULL 2 debt_to_penny
 
 - Request: https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v2/accounting/od/debt_to_penny?filter=record_fiscal_year%3Agte%3A2015%2Crecord_fiscal_year%3Alte%3A2025&page%5Bsize%5D=10000&page%5Bnumber%5D=1
-- Retrieved (UTC): Sun, 15 Nov 2026 18:36:38 GMT
+- Retrieved (UTC): Mon, 16 Nov 2026 19:13:23 GMT
 - Excerpt (copied exactly as returned, the lines that show the values reported):
 
 ```
-HTTP Date: Sun, 15 Nov 2026 18:36:38 GMT
-meta object, exactly as returned in the saved pull2/ file:
+HTTP Date: Mon, 16 Nov 2026 19:13:23 GMT
+meta object, exactly as returned in the saved pull2-full/ file:
 "meta":{"count":2761,"labels":{"record_date":"Record Date","debt_held_public_amt":"Debt Held by the Public","intragov_hold_amt":"Intragovernmental Holdings","tot_pub_debt_out_amt":"Total Public Debt Outstanding","src_line_nbr":"Source Line Number","record_fiscal_year":"Fiscal Year","record_fiscal_quarter":"Fiscal Quarter Number","record_calendar_year":"Calendar Year","record_calendar_quarter":"Calendar Quarter Number","record_calendar_month":"Calendar Month Number","record_calendar_day":"Calendar Day Number"},"dataTypes":{"record_date":"DATE","debt_held_public_amt":"CURRENCY","intragov_hold_amt":"CURRENCY","tot_pub_debt_out_amt":"CURRENCY","src_line_nbr":"INTEGER","record_fiscal_year":"YEAR","record_fiscal_quarter":"QUARTER","record_calendar_year":"YEAR","record_calendar_quarter":"QUARTER","record_calendar_month":"MONTH","record_calendar_day":"DAY"},"dataFormats":{"record_date":"YYYY-MM-DD","debt_held_public_amt":"$10.20","intragov_hold_amt":"$10.20","tot_pub_debt_out_amt":"$10.20","src_line_nbr":"10","record_fiscal_year":"YYYY","record_fiscal_quarter":"Q","record_calendar_year":"YYYY","record_calendar_quarter":"Q","record_calendar_month":"MM","record_calendar_day":"DD"},"total-count":2761,"total-pages":1}
 SHA-256 of this page: e41afec56f5013a3d8ccee746c5ddd4180508cc0be83057c30b252822ca2494f (identical to the pull-1 page)
 {"record_date":"2014-10-01","tot_pub_debt_out_amt":"17875258091207.08","record_fiscal_year":"2015"}
 {"record_date":"2014-10-02","tot_pub_debt_out_amt":"17872947693176.67","record_fiscal_year":"2015"}
 ```
 
-### Request 5: PULL 2 avg_interest_rates (FAILED)
+### Request 5: PULL 2 avg_interest_rates
 
 - Request: https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v2/accounting/od/avg_interest_rates?filter=record_fiscal_year%3Agte%3A2015%2Crecord_fiscal_year%3Alte%3A2025&page%5Bsize%5D=10000&page%5Bnumber%5D=1
-- Retrieved (UTC): no response (see attempts below). No HTTP Date header was captured for the failed responses: the fetch client raises on HTTPError before reading headers, so the saved records hold the error string and the run's time bounds, not a per-response Date header. The times below are the exact bounds provable from the saved records, not to-the-second timestamps.
-- Excerpt (the error, verbatim from pull2/manifest.json, with its UTC time bounds):
+- Retrieved (UTC): Mon, 16 Nov 2026 19:13:14 GMT
+- Excerpt (copied exactly as returned, the lines that show the values reported):
 
 ```
-Attempt 1: between the pull-2 run start (2026-11-15 18:35:00 UTC, the scheduled run) and 18:36:38 GMT (the next request in the same run, debt_to_penny, succeeded with HTTP Date Sun, 15 Nov 2026 18:36:38 GMT; datasets are fetched in the order avg_interest_rates, debt_to_penny, interest_expense):
-  https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v2/accounting/od/avg_interest_rates?filter=record_fiscal_year%3Agte%3A2015%2Crecord_fiscal_year%3Alte%3A2025&page%5Bsize%5D=10000&page%5Bnumber%5D=1: HTTP 503 Service Unavailable
-Retry: after the attempt-1 failures and before the PULL 2 note filed 2026-11-15 18:45:48 UTC (the manifest records this retry window as approximately 18:39-18:42 UTC):
-  https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v2/accounting/od/avg_interest_rates?filter=record_fiscal_year%3Agte%3A2015%2Crecord_fiscal_year%3Alte%3A2025&page%5Bsize%5D=10000&page%5Bnumber%5D=1: HTTP 503 Service Unavailable
+HTTP Date: Mon, 16 Nov 2026 19:13:14 GMT
+meta object, exactly as returned in the saved pull2-full/ file:
+"meta":{"count":2207,"labels":{"record_date":"Record Date","security_type_desc":"Security Type Description","security_desc":"Security Description","avg_interest_rate_amt":"Average Interest Rate Amount","src_line_nbr":"Source Line Number","record_fiscal_year":"Fiscal Year","record_fiscal_quarter":"Fiscal Quarter Number","record_calendar_year":"Calendar Year","record_calendar_quarter":"Calendar Quarter Number","record_calendar_month":"Calendar Month Number","record_calendar_day":"Calendar Day Number"},"dataTypes":{"record_date":"DATE","security_type_desc":"STRING","security_desc":"STRING","avg_interest_rate_amt":"PERCENTAGE","src_line_nbr":"INTEGER","record_fiscal_year":"YEAR","record_fiscal_quarter":"QUARTER","record_calendar_year":"YEAR","record_calendar_quarter":"QUARTER","record_calendar_month":"MONTH","record_calendar_day":"DAY"},"dataFormats":{"record_date":"YYYY-MM-DD","security_type_desc":"String","security_desc":"String","avg_interest_rate_amt":"10.2%","src_line_nbr":"10","record_fiscal_year":"YYYY","record_fiscal_quarter":"Q","record_calendar_year":"YYYY","record_calendar_quarter":"Q","record_calendar_month":"MM","record_calendar_day":"DD"},"total-count":2207,"total-pages":1}
+SHA-256 of this page: 8e1424d90ab618c036114e23e90c0b680ddb5ff81361ab467d2bc35de1895dd8 (identical to the pull-1 page)
+{"record_date":"2014-10-31","security_desc":"Total Interest-bearing Debt","avg_interest_rate_amt":"2.384","record_fiscal_year":"2015"}
+{"record_date":"2014-10-31","security_desc":"Treasury Notes","avg_interest_rate_amt":"1.807","record_fiscal_year":"2015"}
 ```
 
-pull 2 failed (counts as done) for this source.
+This is the revision-2 full re-pull. The original pull-2 attempt for this source on 2026-11-15 failed (HTTP 503, see Request 7); the outage had cleared and the re-pull succeeded, so the failure path does not apply.
 
-### Request 6: PULL 2 interest_expense (FAILED)
+### Request 6: PULL 2 interest_expense
 
 - Request: https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v2/accounting/od/interest_expense?filter=record_fiscal_year%3Agte%3A2015%2Crecord_fiscal_year%3Alte%3A2025&page%5Bsize%5D=10000&page%5Bnumber%5D=1
-- Retrieved (UTC): no response (see attempts below). No HTTP Date header was captured for the failed responses: the fetch client raises on HTTPError before reading headers (and a timeout has no response at all), so the saved records hold the error string and the run's time bounds, not a per-response Date header. The times below are the exact bounds provable from the saved records, not to-the-second timestamps.
-- Excerpt (the error, verbatim from pull2/manifest.json, with its UTC time bounds):
+- Retrieved (UTC): Mon, 16 Nov 2026 19:13:32 GMT
+- Excerpt (copied exactly as returned, the lines that show the values reported):
 
 ```
-Attempt 1: after the debt_to_penny response in the same run (HTTP Date Sun, 15 Nov 2026 18:36:38 GMT); the read timed out under the 120-second client timeout:
-  TimeoutError: The read operation timed out
-Retry: after the attempt-1 failures and before the PULL 2 note filed 2026-11-15 18:45:48 UTC (the manifest records this retry window as approximately 18:39-18:42 UTC):
-  https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v2/accounting/od/interest_expense?filter=record_fiscal_year%3Agte%3A2015%2Crecord_fiscal_year%3Alte%3A2025&page%5Bsize%5D=10000&page%5Bnumber%5D=1: HTTP 503 Service Unavailable
+HTTP Date: Mon, 16 Nov 2026 19:13:32 GMT
+meta object, exactly as returned in the saved pull2-full/ file:
+"meta":{"count":5016,"labels":{"record_date":"Record Date","expense_catg_desc":"Expense Category Description","expense_group_desc":"Expense Group Description","expense_type_desc":"Expense Type Description","month_expense_amt":"Current Month Expense Amount","fytd_expense_amt":"Fiscal Year to Date Expense Amount","src_line_nbr":"Source Line Number","record_fiscal_year":"Fiscal Year","record_fiscal_quarter":"Fiscal Quarter Number","record_calendar_year":"Calendar Year","record_calendar_quarter":"Calendar Quarter Number","record_calendar_month":"Calendar Month Number","record_calendar_day":"Calendar Day Number"},"dataTypes":{"record_date":"DATE","expense_catg_desc":"STRING","expense_group_desc":"STRING","expense_type_desc":"STRING","month_expense_amt":"CURRENCY","fytd_expense_amt":"CURRENCY","src_line_nbr":"INTEGER","record_fiscal_year":"YEAR","record_fiscal_quarter":"QUARTER","record_calendar_year":"YEAR","record_calendar_quarter":"QUARTER","record_calendar_month":"MONTH","record_calendar_day":"DAY"},"dataFormats":{"record_date":"YYYY-MM-DD","expense_catg_desc":"String","expense_group_desc":"String","expense_type_desc":"String","month_expense_amt":"$10.20","fytd_expense_amt":"$10.20","src_line_nbr":"10","record_fiscal_year":"YYYY","record_fiscal_quarter":"Q","record_calendar_year":"YYYY","record_calendar_quarter":"Q","record_calendar_month":"MM","record_calendar_day":"DD"},"total-count":5016,"total-pages":1}
+SHA-256 of this page: 2546b9d088d5f3f7443bedd8b56921e9a5e907604189d706690114cb64f80690 (identical to the pull-1 page)
+{"record_date":"2014-10-31","expense_catg_desc":"INTEREST EXPENSE ON PUBLIC ISSUES","expense_type_desc":"Treasury Notes","month_expense_amt":"12107124909.87","fytd_expense_amt":"12107124909.87","record_fiscal_year":"2015"}
+{"record_date":"2014-10-31","expense_catg_desc":"INTEREST EXPENSE ON PUBLIC ISSUES","expense_type_desc":"Treasury Bonds","month_expense_amt":"6346671026.90","fytd_expense_amt":"6346671026.90","record_fiscal_year":"2015"}
 ```
 
-pull 2 failed (counts as done) for this source.
+This is the revision-2 full re-pull. The original pull-2 attempt for this source on 2026-11-15 failed (read timeout on attempt 1, HTTP 503 on retry, see Request 7); the outage had cleared and the re-pull succeeded, so the failure path does not apply.
 
 ### Request 7: post-note verification retry (main agent)
 
-After the PULL 2 note was filed, the main agent re-ran the same three requests once more (2026-11-15 18:49-18:52 UTC) to check whether the outage had cleared. All three endpoints returned HTTP 503 Service Unavailable, including `debt_to_penny`, which had succeeded at 18:36:38 UTC. The outage was ongoing and widening, not a single transient failure. Raw manifest saved as `pull2-retry/manifest.json`. No further retry was made: the TASK allows submitting with pull 2 failed for the affected sources.
+After the original PULL 2 note was filed (2026-11-15 18:45:48 UTC), the main agent re-ran the same three requests once more (2026-11-15 18:49-18:52 UTC) to check whether the outage had cleared. All three endpoints returned HTTP 503 Service Unavailable, including `debt_to_penny`, which had succeeded at 18:36:38 UTC. The outage was ongoing and widening, not a single transient failure. Raw manifest saved as `pull2-retry/manifest.json`. No further retry was made: the TASK allows submitting with pull 2 failed for the affected sources.
 
 ### Request 8: revision-time re-check of the two failed endpoints
 
@@ -1360,15 +1472,15 @@ Content-Type: application/json
 {"data":[{"record_date":"2014-10-31","expense_catg_desc":"INTEREST EXPENSE ON PUBLIC ISSUES","expense_group_desc":"ACCRUED INTEREST EXPENSE","expense_type_desc":"Treasury Notes","month_expense_amt":"12107124909.87","fytd_expense_amt":"12107124909.87","src_line_nbr":"1","record_fiscal_year":"2015","r ...
 ```
 
-Both endpoints were live again by 2026-11-16 17:36 UTC: the pull-2 outage was time-bounded (2026-11-15 18:35-18:52 UTC, per Requests 5-7) and had cleared by the revision. Raw re-check record saved as `revision-recheck.json`.
+Both endpoints were live again by 2026-11-16 17:36 UTC: the pull-2 outage was time-bounded (2026-11-15 18:35-18:52 UTC, per Request 7 and the original pull-2 manifest in pull2/) and had cleared by the revision. Revision 2 then re-pulled all three datasets in full (Requests 4-6). Raw re-check record saved as `revision-recheck.json`.
 
 ## Data files
 
-Attached under Rule 25 (see the synmerco-data block). D2 is the complete pull-1 CSV; D3 is the partial pull-2 CSV disclosed above.
+Attached under Rule 25 (see the synmerco-data block). D2 is the complete pull-1 CSV; D3 is the complete pull-2 CSV (byte-identical to D2: the full re-pull returned the same data).
 
 ```synmerco-data
 a2a6a9052039bb5745498251600cdf195163ce94fc566c7dda8048ffa22f62b5 treasury-cost-pull1.csv
-713545815916db2518ae8f34038bf02c0509f152dd23c513fbf8fa8938e02de3 treasury-cost-pull2.csv
+a2a6a9052039bb5745498251600cdf195163ce94fc566c7dda8048ffa22f62b5 treasury-cost-pull2.csv
 ```
 
 ## Notes
@@ -1377,4 +1489,4 @@ a2a6a9052039bb5745498251600cdf195163ce94fc566c7dda8048ffa22f62b5 treasury-cost-p
 - Money values are Decimal (exact); rates are shown to 4 decimals, money to 2 decimals, as computed by the package.
 - `security_desc` totals used (verified against the live pull-1 responses): "Total Interest-bearing Debt", "Total Marketable", "Total Non-marketable". Other `security_desc` values are component lines and are ignored for the rate means.
 - A fiscal year is taken from each record's `record_fiscal_year` field; the package falls back to deriving it from `record_date` (FY starts 1 October).
-- Progress notes on the platform (5 total): work-started note 2026-11-14 18:19:31 UTC; PULL 1 note 2026-11-14 18:34:09 UTC; PULL 2 note 2026-11-15 18:45:48 UTC; revision-1 note 2026-11-16 17:27:06 UTC; D3-revision note 2026-11-16 18:09:43 UTC.
+- Progress notes on the platform (7 total): work-started note 2026-11-14 18:19:31 UTC; PULL 1 note 2026-11-14 18:34:09 UTC; original PULL 2 note 2026-11-15 18:45:48 UTC (superseded: it carried the SHA of the partial D3); revision-1 note 2026-11-16 17:27:06 UTC; D3-revision note 2026-11-16 18:09:43 UTC; revision-2 start note 2026-11-16 19:12:35 UTC; corrected PULL 2 note 2026-11-16 19:15:03 UTC (11 rows, SHA-256 a2a6a905...).
